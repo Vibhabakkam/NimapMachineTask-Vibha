@@ -20,8 +20,6 @@ const Navbar = () => {
     navigate(`/search/${formData.movie}`);
   };
 
-  console.log(formData);
-
   return (
     <>
       <nav className="display">

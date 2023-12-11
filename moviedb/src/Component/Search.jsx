@@ -1,5 +1,7 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import HamLoader from "./Loader/HamLoader";
 
 const apiKey = `c45a857c193f6302f2b5061c3b85e743`;
 
@@ -10,19 +12,36 @@ const Search = () => {
   const { name } = useParams();
   const searchUrl = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=en-US&query=${name}&page=1`;
 
-  useEffect(() => {
-    fetch(searchUrl)
-      .then((response) => response.json())
-      .then((data) => setSearchResults(data.results));
-  }, [searchUrl]);
+  useEffect(()=>{
+    const getSearchResult = async ()=>{
 
-  console.log(searchResults);
+      try {
+        const response = await axios.get(searchUrl);
+        if(response.status == 200){
+          if(response.data.results.length){
+            return setSearchResults(response.data.results);
+          }
+          return alert("Movie Not found");
+
+        }else{
+          alert('Something went wrong');
+        }  
+      } catch (error) {
+        console.log("something went wrong");
+      }
+
+    }
+
+    getSearchResult();
+
+  },[name])
+
 
   return (
     <>
       <div id="home">
         <div>
-          {searchResults &&
+          {searchResults ?
             searchResults.map((result, index) => (
               <div onClick={() => navigate(`/single/${result.id}`)} key={index}>
                 <div className="movie_img">
@@ -37,7 +56,7 @@ const Search = () => {
                   <p>Rating: {result.vote_average}</p>
                 </div>
               </div>
-            ))}
+            )): <HamLoader/>}
         </div>
       </div>
     </>

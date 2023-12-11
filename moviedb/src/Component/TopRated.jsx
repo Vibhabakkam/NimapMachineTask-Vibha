@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./CSS/style.css";
 import { useNavigate } from "react-router-dom";
+import HamLoader from "./Loader/HamLoader";
+import axios from "axios";
 
 const apiKey = "c45a857c193f6302f2b5061c3b85e743";
 const apiUrl = `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&language=en-US&page=1`;
@@ -9,23 +11,32 @@ const TopRated = () => {
   const navigate = useNavigate();
   const [movieData, setMovieData] = useState();
 
-  useEffect(() => {
-    fetch(apiUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => setMovieData(data.results))
-      .catch((error) => console.error('Error fetching data:', error));
-  }, []);
+  useEffect(()=>{
+    const getSearchResult = async ()=>{
+      try {
+        const response = await axios.get(apiUrl);
+        if(response.status == 200){
+          if(response.data.results.length){
+            return setMovieData(response.data.results);
+          }
+          return alert("Movie Not found");
+
+        }else{
+          alert('Something went wrong');
+        }  
+      } catch (error) {
+        console.log("something went wrong");
+      }
+
+    }
+    getSearchResult();
+  },[])
 
   return (
     <>
       <div id="home">
         <div>
-          {movieData &&
+          {movieData ?
             movieData.map((movie, index) => (
               <div onClick={() => navigate(`/single/${movie.id}`)} key={index}>
                 <div className="movie_img">
@@ -40,7 +51,7 @@ const TopRated = () => {
                   <p>Rating: {movie.vote_average}</p>
                 </div>
               </div>
-            ))}
+            )) : <HamLoader/>}
         </div>
       </div>
     </>
