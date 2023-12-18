@@ -1,43 +1,56 @@
+
 import React, { useEffect, useState } from "react";
 import "./CSS/style.css";
 import { useNavigate } from "react-router-dom";
 import HamLoader from "./Loader/HamLoader";
 import axios from "axios";
+import Pagination from "./Pagination";
 
 const apiKey = "c45a857c193f6302f2b5061c3b85e743";
-const apiUrl = `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&language=en-US&page=1`;
+const initialPage = 1;
+const apiUrl = `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&language=en-US&page=${initialPage}`;
 
 const TopRated = () => {
   const navigate = useNavigate();
-  const [movieData, setMovieData] = useState();
+  const [movieData, setMovieData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [postPerPage, setPostPerPage] = useState(8);
 
-  useEffect(()=>{
-    const getSearchResult = async ()=>{
+  useEffect(() => {
+    const getSearchResult = async () => {
       try {
         const response = await axios.get(apiUrl);
-        if(response.status == 200){
-          if(response.data.results.length){
-            return setMovieData(response.data.results);
+        if (response.status === 200) {
+          if (response.data.results.length) {
+            setMovieData(response.data.results);
+          } else {
+            alert("Movie Not found");
           }
-          return alert("Movie Not found");
-
-        }else{
-          alert('Something went wrong');
-        }  
+        } else {
+          alert("Something went wrong");
+        }
       } catch (error) {
-        console.log("something went wrong");
+        console.log("something went wrong", error);
       }
+    };
 
-    }
     getSearchResult();
-  },[])
+  }, []);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const lastPostIndex = currentPage * postPerPage;
+  const firstPostIndex = lastPostIndex - postPerPage;
+  const currentPost = movieData.slice(firstPostIndex, lastPostIndex);
 
   return (
     <>
       <div id="home">
         <div>
-          {movieData ?
-            movieData.map((movie, index) => (
+          {currentPost.length ? (
+            currentPost.map((movie, index) => (
               <div onClick={() => navigate(`/single/${movie.id}`)} key={index}>
                 <div className="movie_img">
                   <img
@@ -51,11 +64,23 @@ const TopRated = () => {
                   <p>Rating: {movie.vote_average}</p>
                 </div>
               </div>
-            )) : <HamLoader/>}
+            ))
+          ) : (
+            <HamLoader />
+          )}
         </div>
       </div>
+      <Pagination
+        totalPost={movieData.length}
+        postPerPage={postPerPage}
+        currentPage={currentPage}
+        handlePageChange={handlePageChange}
+        setCurrentPage={setCurrentPage}
+      />
     </>
   );
 };
 
 export default TopRated;
+
+
